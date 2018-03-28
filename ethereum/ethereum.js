@@ -4,6 +4,13 @@ const Accounts = require('./accounts');
 const Transfer = require('./transfer');
 const Tokens = require('../config/tokens');
 
+function to(promise) {  
+    return promise.then(data => {
+       return [null, data];
+    })
+    .catch(err => [err]);
+ }
+
 class Ethereum {
     constructor(){
         // 私有变量
@@ -17,13 +24,13 @@ class Ethereum {
         // 初始ETH配置  
         this._eth = Tokens["eth"];
         this._web3.setProvider(new Web3.providers.HttpProvider(this._eth.web3_url));
-        this._eth.private_key = this._readPrivateKey(this._eth.keystore, this._eth.unlock_password);
+        [this._eth.private_key, this._eth.address] = this._readPrivateKey(this._eth.keystore, this._eth.unlock_password);
 
         // 初始ERC20配置
         for (let key in Tokens) {
             if (key != "eth" && Tokens[key].family == "ETH") {
                 let token = Tokens[key];
-                token.private_key = this._readPrivateKey(token.keystore, token.unlock_password);
+                [token.private_key, token.address] = this._readPrivateKey(token.keystore, token.unlock_password);
                 this._erc20_tokens.push(token);
             }
         }
@@ -34,11 +41,6 @@ class Ethereum {
 
         // 创建转账模块
         this._transfer = new Transfer(this._web3);
-        this._transfer.sendToken(
-            "0xB49446a6379412222330B7739149B70B1aBF113D",
-            "0xC299Ac73687Fa17e10A206c47DC0E81b8c7828E6",
-            "1",
-            this._eth.private_key);
     }
 
     // 开始轮询
@@ -48,7 +50,13 @@ class Ethereum {
             let handler = async function() {
                 // 获取区块高度
                 let web3 = self._web3;
-                let blockNumber = await web3.eth.getBlockNumber();
+                let error, blockNumber, block, transaction;
+                [error, blockNumber] = await to(web3.eth.getBlockNumber());
+                if (error != null) {
+                    console.info("getBlockNumber", error);
+                    return
+                }
+
                 blockNumber = blockNumber - self._eth.confirmations;
                 if (self._lastBlockNumber == 0) {
                     self._lastBlockNumber = blockNumber - 1;
@@ -58,11 +66,20 @@ class Ethereum {
                 }
 
                 // 获取区块信息
-                let block = await web3.eth.getBlock(blockNumber);
+                [error, block] = await to(web3.eth.getBlock(blockNumber));
+                if (error != null) {
+                    console.info("getBlock", error);
+                    return
+                }
 
                 // 获取交易信息
                 for (let idx in block.transactions) {
-                    let transaction = await web3.eth.getTransaction(block.transactions[idx]);               
+                    [error, transaction] = await to(web3.eth.getTransaction(block.transactions[idx]));
+                    if (error != null) {
+                        console.info("getTransaction", block.transactions[idx]);
+                        continue
+                    }
+                    
                     if (self._acounts.has(transaction.to)) {
                         let notify = new Notify();
                         notify.from         = transaction.from;
@@ -74,7 +91,7 @@ class Ethereum {
                 }
                 self._lastBlockNumber += 1;
             };
-            //this._interval = setInterval(handler, 1000);
+            this._interval = setInterval(handler, 1000);
         }
     }
 
@@ -94,8 +111,9 @@ class Ethereum {
 
         let buffer = fs.readFileSync(path.join('.', keystore));
         try {
-            let privateKey = keythereum.recover(unlock_password, JSON.parse(buffer));
-            return privateKey;
+            let obj = JSON.parse(buffer);
+            let privateKey = keythereum.recover(unlock_password, obj);
+            return [privateKey, "0x"+obj.address];
         } catch (error) {
             console.error("Failed to get private key, unlock password is invalid.");
             throw error;
