@@ -1,6 +1,7 @@
 const Web3 = require('web3');
 const Notify = require('./notify');
 const Accounts = require('./accounts');
+const Transfer = require('./transfer');
 const Tokens = require('../config/tokens');
 
 class Ethereum {
@@ -30,6 +31,14 @@ class Ethereum {
         // 获取账号列表
         this._acounts = new Accounts(this._web3);
         this._acounts.loadAccounts();
+
+        // 创建转账模块
+        this._transfer = new Transfer(this._web3);
+        this._transfer.sendToken(
+            "0xB49446a6379412222330B7739149B70B1aBF113D",
+            "0xC299Ac73687Fa17e10A206c47DC0E81b8c7828E6",
+            "1",
+            this._eth.private_key);
     }
 
     // 开始轮询
@@ -65,7 +74,7 @@ class Ethereum {
                 }
                 self._lastBlockNumber += 1;
             };
-            this._interval = setInterval(handler, 1000);
+            //this._interval = setInterval(handler, 1000);
         }
     }
 
