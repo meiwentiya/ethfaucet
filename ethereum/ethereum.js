@@ -60,10 +60,7 @@ class Ethereum {
                         notify.to           = transaction.to;
                         notify.hash         = transaction.hash;
                         notify.blockNumber  = transaction.blockNumber;
-
-                        let data = JSON.stringify(notify);
-                        console.info(data, transaction);
-                        // 调用webhook
+                        notify.post(self._eth.walletnotify);
                     }
                 }
                 self._lastBlockNumber += 1;

@@ -1,7 +1,7 @@
 {
   "name": "ethfaucet",
   "version": "1.0.0",
-  "description": "",
+  "description": "以太坊ERC20 Token水龙头服务",
   "main": "index.js",
   "dependencies": {
     "keythereum": "^1.0.2",
@@ -12,5 +12,13 @@
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "",
-  "license": "ISC"
+  "license": "ISC",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/zhangpanyi/ethfaucet.git"
+  },
+  "bugs": {
+    "url": "https://github.com/zhangpanyi/ethfaucet/issues"
+  },
+  "homepage": "https://github.com/zhangpanyi/ethfaucet#readme"
 }
