@@ -1,4 +1,4 @@
-var Tx = require('ethereumjs-tx');
+let Tx = require('ethereumjs-tx');
 const future = require('../conmon/future');
 
 class Transfer {
@@ -32,7 +32,7 @@ class Transfer {
             console.error('Failed to send token,', error.message);
             throw error;
         }
-        var rawTransaction = {
+        let rawTransaction = {
             from        : from,
             to          : to,
             nonce       : web3.utils.toHex(count),
@@ -42,9 +42,9 @@ class Transfer {
         }
 
         // 签名消息
-        var tx = new Tx(rawTransaction);
+        let tx = new Tx(rawTransaction);
         tx.sign(privateKey);
-        var serializedTx = tx.serialize();  
+        let serializedTx = tx.serialize();  
 
         // 发送签名消息
         [error, transaction] = await future(web3.eth.sendSignedTransaction('0x' + serializedTx.toString('hex')));
@@ -85,7 +85,7 @@ class Transfer {
             console.error('Failed to send erc20 token,', error.message);
             throw error;
         }
-        var rawTransaction = {
+        let rawTransaction = {
             from        : from,
             to          : contractaddress,
             nonce       : web3.utils.toHex(count),
@@ -95,17 +95,40 @@ class Transfer {
         }
 
         // 签名消息
-        var tx = new Tx(rawTransaction);
+        let tx = new Tx(rawTransaction);
         tx.sign(privateKey);
-        var serializedTx = tx.serialize();  
+        let serializedTx = tx.serialize();
+
+        function asdasd() {
+            function saasdasd() {
+
+            }
+
+            var promise = new Promise(function(resolve, reject){
+            })
+            return promise
+        }
+
 
         // 发送签名消息
-        [error, transaction] = await future(web3.eth.sendSignedTransaction('0x' + serializedTx.toString('hex')));
-        if (error != null) {
-            console.error('Failed to send erc20 token,', error.message);
-            throw error;
-        }
-        return transaction.transactionHash;
+        let transactionHash = null;
+        let input = '0x' + serializedTx.toString('hex');
+        web3.eth.sendSignedTransaction(input).once('transactionHash', function(hash) {
+            transactionHash = hash;
+            console.info('sendSignedTransaction', transactionHash, promise.done());
+        });
+
+        await promise;
+
+waitgroup
+//https://www.npmjs.com/package/waitgroup
+
+        // if (error != null) {
+        //     console.error('Failed to send erc20 token,', error.message);
+        //     throw error;
+        // }
+        console.info(transactionHash);
+        return transactionHash;
     }
 };
 
