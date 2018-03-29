@@ -54,7 +54,7 @@ class RPCServer {
             error = {code: -32000, message: error.message};
             callback(error, undefined);
         }
-        callback(undefined, {'result': {'hash': hash}});
+        callback(undefined, {'hash': hash});
     }
 
     // 发送ERC20
@@ -89,7 +89,7 @@ class RPCServer {
             error = {code: -32000, message: error.message};
             callback(error, undefined);
         }
-        callback(undefined, {'result': {'hash': hash}});
+        callback(undefined, {'hash': hash});
     }
 }
 

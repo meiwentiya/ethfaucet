@@ -105,7 +105,7 @@ class Transfer {
             console.error('Failed to send erc20 token,', error.message);
             throw error;
         }
-        return [null, transaction.transactionHash];
+        return transaction.transactionHash;
     }
 };
 
