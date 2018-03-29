@@ -1,5 +1,6 @@
 let Tx = require('ethereumjs-tx');
 const future = require('../conmon/future');
+const WaitGroup = require("../common/waitgroup");
 
 class Transfer {
     constructor(web3){
@@ -47,7 +48,19 @@ class Transfer {
         let serializedTx = tx.serialize();  
 
         // 发送签名消息
-        [error, transaction] = await future(web3.eth.sendSignedTransaction('0x' + serializedTx.toString('hex')));
+        error = null;
+        let transactionHash = null;
+        let waitGroup = new WaitGroup(1);        
+        let input = '0x' + serializedTx.toString('hex'); 
+        web3.eth.sendSignedTransaction(input).once('transactionHash', function(hash) {
+            transactionHash = hash;
+            waitGroup.done();
+        }).on('error', function(err) {
+            error = err;
+            waitGroup.done();
+        });
+
+        waitGroup.wait();
         if (error != null) {
             console.error('Failed to send token,', error.message);
             throw error;
@@ -99,108 +112,26 @@ class Transfer {
         tx.sign(privateKey);
         let serializedTx = tx.serialize();
 
-        function asdasd() {
-            function saasdasd() {
-
-            }
-
-            var promise = new Promise(function(resolve, reject){
-            })
-            return promise
-        }
-
-
         // 发送签名消息
+        error = null;
         let transactionHash = null;
-        let input = '0x' + serializedTx.toString('hex');
+        let waitGroup = new WaitGroup(1);
+        let input = '0x' + serializedTx.toString('hex');       
         web3.eth.sendSignedTransaction(input).once('transactionHash', function(hash) {
             transactionHash = hash;
-            console.info('sendSignedTransaction', transactionHash, promise.done());
+            waitGroup.done();
+        }).on('error', function(err) {
+            error = err;
+            waitGroup.done();
         });
 
-        await promise;
-
-waitgroup
-//https://www.npmjs.com/package/waitgroup
-
-        // if (error != null) {
-        //     console.error('Failed to send erc20 token,', error.message);
-        //     throw error;
-        // }
-        console.info(transactionHash);
+        waitGroup.wait();
+        if (error != null) {
+            console.error('Failed to send erc20 token,', error.message);
+            throw error;
+        }
         return transactionHash;
     }
 };
 
 module.exports = Transfer;
-
-
-
-// Copyright (c) 2012 Sam Nguyen <samxnguyen@gmail.com>
-//
-// Permission is hereby granted, free of charge, to any person obtaining a copy
-// of this software and associated documentation files (the "Software"), to deal
-// in the Software without restriction, including without limitation the rights
-// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-// copies of the Software, and to permit persons to whom the Software is
-// furnished to do so, subject to the following conditions:
-//
-// The above copyright notice and this permission notice shall be included in
-// all copies or substantial portions of the Software.
-//
-// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-// SOFTWARE.
-
-(function(){
-    var WaitGroup = function(){
-        this.total = 0; // Number of total items
-        this.ready = 0; // Number of items ready
-    };
-    
-    WaitGroup.prototype.add = function WaitGroupAdd(){
-        this.total++;
-    };
-    
-    WaitGroup.prototype.done = function WaitGroupDone(){
-        this.ready++;
-    };
-    
-    WaitGroup.prototype.wait = function(fn) {
-      var self = this;
-      setTimeout(function(){
-        if(self.ready == self.total) return fn();
-        self.wait(fn);
-      }, 0);
-    };
-    
-    // Export to node.js
-    if(typeof(module) !== "undefined") {
-        module.exports = WaitGroup;
-    }
-    // Export to browser
-    else {
-        window.WaitGroup = WaitGroup;
-    }
-    
-    })();
-    async function test() {
-        console.log('Hello')
-        await sleep(1000)
-        console.log('world!')
-      }
-      
-      function sleep(ms) {
-        return new Promise(resolve => setTimeout(resolve, ms))
-      }
-      
-      test()
-      
-      作者：贺师俊
-      链接：https://www.zhihu.com/question/31636244/answer/52835780
-      来源：知乎
-      著作权归作者所有。商业转载请联系作者获得授权，非商业转载请注明出处。
