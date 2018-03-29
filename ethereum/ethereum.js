@@ -182,7 +182,6 @@ class Ethereum {
             notify.blockNumber = transaction.blockNumber;
             if (this._acounts.has(transaction.to)) {
                 // 普通转账
-                console.info(blockNumber, this._lastBlockNumber);
                 notify.symbol = 'ETH';
                 notify.to = transaction.to;
                 notify.amount = web3.utils.fromWei(transaction.value);
