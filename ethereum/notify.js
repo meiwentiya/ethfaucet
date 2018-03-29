@@ -17,7 +17,7 @@ let request = require('request');
         };
         request.post(options, function (error, response, body) {
             if (error != null) {
-                console.error("Failed to post notify", options.json);
+                console.error("Failed to post notify", error.message, options.json);
             }
         });
     }

@@ -1,3 +1,4 @@
+const to = require('./errors');
 var Tx = require('ethereumjs-tx');
 
 class Transfer {
@@ -9,8 +10,15 @@ class Transfer {
     async sendToken(from, to, amount, privateKey) {
         // 构造消息
         let web3 = this._web3;
-        var gasPrice = await web3.eth.getGasPrice();
-        var count = await web3.eth.getTransactionCount(from);
+        let error, gasPrice, count, transaction;
+        [error, gasPrice] = await web3.eth.getGasPrice();
+        if (error != null) {
+            return error;
+        }
+        [error, count] = await web3.eth.getTransactionCount(from);
+        if (error != null) {
+            return error;
+        }
         var rawTransaction = {
             from        : from,
             to          : to,
@@ -26,8 +34,11 @@ class Transfer {
         var serializedTx = tx.serialize();  
 
         // 发送签名消息
-        let transaction = await web3.eth.sendSignedTransaction('0x' + serializedTx.toString('hex'))
-        return transaction.transactionHash;
+        [error, transaction] = await web3.eth.sendSignedTransaction('0x' + serializedTx.toString('hex'));
+        if (error != null) {
+            return error;
+        }
+        return [null, transaction.transactionHash];
     }
 
     // 发送erc20代币

@@ -1,15 +1,4 @@
-const Web3 = require('web3');
-const Notify = require('./notify');
-const Accounts = require('./accounts');
-const Transfer = require('./transfer');
-const Tokens = require('../config/tokens');
-
-function to(promise) {  
-    return promise.then(data => {
-       return [null, data];
-    })
-    .catch(err => [err]);
- }
+const to = require('./errors');
 
 class Ethereum {
     constructor(){
@@ -17,11 +6,13 @@ class Ethereum {
         this._eth = null;
         this._acounts = null;
         this._interval = null;
-        this._web3 = new Web3();
         this._erc20_tokens = [];
         this._lastBlockNumber = 0;
+        const Web3 = require('web3');
+        this._web3 = new Web3();
 
-        // 初始ETH配置  
+        // 初始ETH配置
+        const Tokens = require('../config/tokens');
         this._eth = Tokens["eth"];
         this._web3.setProvider(new Web3.providers.HttpProvider(this._eth.web3_url));
         [this._eth.private_key, this._eth.address] = this._readPrivateKey(this._eth.keystore, this._eth.unlock_password);
@@ -36,10 +27,15 @@ class Ethereum {
         }
 
         // 获取账号列表
+        const Accounts = require('./accounts');
         this._acounts = new Accounts(this._web3);
-        this._acounts.loadAccounts();
+        let error = this._acounts.loadAccounts();
+        if (error != null) {
+            throw error;
+        }
 
         // 创建转账模块
+        const Transfer = require('./transfer');
         this._transfer = new Transfer(this._web3);
     }
 
@@ -47,13 +43,14 @@ class Ethereum {
     startPoll() {
         let self = this;
         if (this._interval == null) {
+            const Notify = require('./notify');
             let handler = async function() {
                 // 获取区块高度
                 let web3 = self._web3;
                 let error, blockNumber, block, transaction;
                 [error, blockNumber] = await to(web3.eth.getBlockNumber());
                 if (error != null) {
-                    console.info("getBlockNumber", error);
+                    console.info("Failed to call `getBlockNumber`", error.message);
                     return
                 }
 
@@ -68,15 +65,15 @@ class Ethereum {
                 // 获取区块信息
                 [error, block] = await to(web3.eth.getBlock(blockNumber));
                 if (error != null) {
-                    console.info("getBlock", error);
+                    console.info("Failed to call `getBlock`", error.message);
                     return
                 }
 
                 // 获取交易信息
-                for (let idx in block.transactions) {
-                    [error, transaction] = await to(web3.eth.getTransaction(block.transactions[idx]));
+                for (let i = 0; i < block.transactions.length;) {
+                    [error, transaction] = await to(web3.eth.getTransaction(block.transactions[i]));
                     if (error != null) {
-                        console.info("getTransaction", block.transactions[idx]);
+                        console.info("Failed to call `getTransaction`", block.transactions[i], error.message);
                         continue
                     }
                     
@@ -88,19 +85,25 @@ class Ethereum {
                         notify.blockNumber  = transaction.blockNumber;
                         notify.post(self._eth.walletnotify);
                     }
+                    i++;
                 }
                 self._lastBlockNumber += 1;
             };
-            this._interval = setInterval(handler, 1000);
+            this._interval = setInterval(handler, 3000);
         }
     }
 
     // 生成地址
     async generateAddress() {
+        let error, address;
         let web3 = this._web3;
-        let address = await web3.eth.personal.newAccount('');
+        [error, address] = await to(web3.eth.personal.newAccount(''));
+        if (error != null) {
+            console.info("Failed generate new eth address", error.message);
+            return error
+        }
         this._acounts.add(address);
-        return address;
+        return [error, address];
     }
     
     // 读取私钥

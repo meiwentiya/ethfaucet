@@ -1,3 +1,5 @@
+const to = require('./errors');
+
 class Accounts {
     constructor(web3){
         this._web3 = web3;
@@ -22,8 +24,13 @@ class Accounts {
 
     // 加载账户列表
     async loadAccounts() {
-        let accounts = await this._web3.eth.getAccounts();
+        let error, accounts;
+        [error, accounts] = await to(this._web3.eth.getAccounts());
+        if (error != null) {
+            return error
+        }
         this._accounts = new Set(accounts);
+        return null;
     }
 }
 
