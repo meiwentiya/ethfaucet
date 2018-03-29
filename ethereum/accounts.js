@@ -27,7 +27,9 @@ class Accounts {
             if (error != null) {
                 throw error;
             }
-            console.error('accounts count:', accounts.length);
+            for (let i in accounts) {
+                accounts[i] = accounts[i].toLowerCase();
+            }
             self._accounts = new Set(accounts);
         });
     }

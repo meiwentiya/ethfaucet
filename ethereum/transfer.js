@@ -56,13 +56,13 @@ class Transfer {
     }
 
     // 发送erc20代币
-    async sendERC20Token(contractAddress, from, to, amount, privateKey) {
+    async sendERC20Token(contractaddress, from, to, amount, privateKey) {
         // 构造合约
         let error, balance;
         let web3 = this._web3;
         const abi = require('./abi');
         amount = web3.utils.toWei(amount);
-        let contract = new web3.eth.Contract(abi, contractAddress);
+        let contract = new web3.eth.Contract(abi, contractaddress);
 
         // 检查余额
         [error, balance] = await future(contract.methods.balanceOf(from).call());
@@ -87,7 +87,7 @@ class Transfer {
         }
         var rawTransaction = {
             from        : from,
-            to          : contractAddress,
+            to          : contractaddress,
             nonce       : web3.utils.toHex(count),
             gasLimit    : web3.utils.toHex(500000),
             gasPrice    : web3.utils.toHex(gasPrice),
