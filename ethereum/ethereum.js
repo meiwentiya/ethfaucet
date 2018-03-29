@@ -1,4 +1,5 @@
-const to = require('./errors');
+const future = require('../conmon/future');
+const Notify = require('../conmon/notify');
 
 class Ethereum {
     constructor(){
@@ -29,10 +30,7 @@ class Ethereum {
         // 获取账号列表
         const Accounts = require('./accounts');
         this._acounts = new Accounts(this._web3);
-        let error = this._acounts.loadAccounts();
-        if (error != null) {
-            throw error;
-        }
+        this._acounts.loadAccounts();
 
         // 创建转账模块
         const Transfer = require('./transfer');
@@ -43,12 +41,11 @@ class Ethereum {
     startPoll() {
         let self = this;
         if (this._interval == null) {
-            const Notify = require('./notify');
             let handler = async function() {
                 // 获取区块高度
                 let web3 = self._web3;
                 let error, blockNumber, block, transaction;
-                [error, blockNumber] = await to(web3.eth.getBlockNumber());
+                [error, blockNumber] = await future(web3.eth.getBlockNumber());
                 if (error != null) {
                     console.info("Failed to call `getBlockNumber`", error.message);
                     return
@@ -63,7 +60,7 @@ class Ethereum {
                 }
 
                 // 获取区块信息
-                [error, block] = await to(web3.eth.getBlock(blockNumber));
+                [error, block] = await future(web3.eth.getBlock(blockNumber));
                 if (error != null) {
                     console.info("Failed to call `getBlock`", error.message);
                     return
@@ -71,7 +68,7 @@ class Ethereum {
 
                 // 获取交易信息
                 for (let i = 0; i < block.transactions.length;) {
-                    [error, transaction] = await to(web3.eth.getTransaction(block.transactions[i]));
+                    [error, transaction] = await future(web3.eth.getTransaction(block.transactions[i]));
                     if (error != null) {
                         console.info("Failed to call `getTransaction`", block.transactions[i], error.message);
                         continue
@@ -97,15 +94,51 @@ class Ethereum {
     async generateAddress() {
         let error, address;
         let web3 = this._web3;
-        [error, address] = await to(web3.eth.personal.newAccount(''));
+        [error, address] = await future(web3.eth.personal.newAccount(''));
         if (error != null) {
             console.info("Failed generate new eth address", error.message);
-            return error
+            throw error;
         }
         this._acounts.add(address);
-        return [error, address];
+        return address;
     }
     
+    // 发送代币
+    async sendToken(to, amount) {
+        let error, hash;
+        [error, hash] = await future(this._transfer.sendToken(
+            this._eth.address, to, amount, this._eth.private_key));
+        if (error != null) {
+            throw error;
+        }
+        return hash;
+    }
+
+    // 发送ERC20代币
+    async sendERC20Token(symbol, to, amount) {
+        // 查找代币信息
+        let token = null;
+        for (let idx in this._erc20_tokens) {
+            if (symbol == this._erc20_tokens[idx].symbol &&
+                this._erc20_tokens[idx].family == 'ETH') {
+                token = this._erc20_tokens[idx];
+                break;
+            }
+        }  
+        if (token == null) {
+            throw new Error('Unknown token symbol.');
+        }
+
+        // 发送ERC20代币
+        let error, hash;
+        [error, hash] = await future(this._transfer.sendERC20Token(
+            token.contract_address, token.address, to, amount, token.private_key));
+        if (error != null) {
+            throw error;
+        }
+        return hash;
+    }
+
     // 读取私钥
     _readPrivateKey(keystore, unlock_password) {
         const fs = require("fs");

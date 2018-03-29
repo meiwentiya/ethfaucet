@@ -1,4 +1,4 @@
-module.exports = function to(promise) {  
+module.exports = function future(promise) {  
     return promise.then(data => {
        return [null, data];
     })

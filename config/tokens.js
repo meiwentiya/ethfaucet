@@ -8,11 +8,11 @@ Tokens = {
         walletnotify: "http:/127.0.0.1:3000/eth/"
     },
     eos: {
-        symbol: "EOS",
+        symbol: "BOKKY",
         family: "ETH",
         keystore: "keystore/main.keystore",
         unlock_password: "123456",
-        contract_address: "0x213213123213213",
+        contract_address: "0x583cbBb8a8443B38aBcC0c956beCe47340ea1367",
         walletnotify: "http:/127.0.0.1:3000/eos/"
     }
 }
