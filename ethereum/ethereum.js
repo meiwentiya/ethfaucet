@@ -1,5 +1,6 @@
-const future = require('../conmon/future');
-const Notify = require('../conmon/notify');
+let logger = require('../common/logger');
+const future = require('../common/future');
+const Notify = require('../common/notify');
 const InputDataDecoder = require('ethereum-input-data-decoder');
 
 class Ethereum {
@@ -57,7 +58,7 @@ class Ethereum {
         let web3 = this._web3;
         [error, address] = await future(web3.eth.personal.newAccount(''));
         if (error != null) {
-            console.info("Failed generate new eth address", error.message);
+            logger.info('Failed generate new eth addres, %s', error.message);
             throw error;
         }
         this._acounts.add(address);
@@ -112,7 +113,7 @@ class Ethereum {
             let privateKey = keythereum.recover(unlockpassword, obj);
             return [privateKey, "0x"+obj.address];
         } catch (error) {
-            console.error("Failed to get private key, unlock password is invalid.");
+            logger.info('Failed to get private key, unlock password is invalid.');
             throw error;
         }  
     }
@@ -148,7 +149,7 @@ class Ethereum {
         let error, blockNumber, block, transaction;
         [error, blockNumber] = await future(web3.eth.getBlockNumber());
         if (error != null) {
-            console.info("Failed to call `getBlockNumber`", error.message);
+            logger.info('Failed to call `getBlockNumber`, %s', error.message)
             return
         }
 
@@ -163,7 +164,7 @@ class Ethereum {
         // 获取区块信息
         [error, block] = await future(web3.eth.getBlock(this._lastBlockNumber));
         if (error != null) {
-            console.info("Failed to call `getBlock`", error.message);
+            logger.info("Failed to call `getBlock`, %s", error.message);
             return
         }
 
@@ -171,7 +172,7 @@ class Ethereum {
         for (let i = 0; i < block.transactions.length;) {
             [error, transaction] = await future(web3.eth.getTransaction(block.transactions[i]));
             if (error != null) {
-                console.info("Failed to call `getTransaction`", block.transactions[i], error.message);
+                logger.info("Failed to call `getTransaction`, %s, %s", block.transactions[i], error.message);
                 continue
             }
 

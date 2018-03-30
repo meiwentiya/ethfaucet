@@ -1,6 +1,6 @@
 let Tx = require('ethereumjs-tx');
-const future = require('../conmon/future');
-const WaitGroup = require("../common/waitgroup");
+let logger = require('./common/logger');
+const future = require('../common/future');
 
 class Transfer {
     constructor(web3){
@@ -25,12 +25,12 @@ class Transfer {
         let gasPrice, count, transaction;
         [error, gasPrice] = await future(web3.eth.getGasPrice());
         if (error != null) {
-            console.error('Failed to send token,', error.message);
+            logger.error('Failed to send token, %s', error.message);
             throw error;
         }
         [error, count] = await future(web3.eth.getTransactionCount(from));
         if (error != null) {
-            console.error('Failed to send token,', error.message);
+            logger.error('Failed to send token, %s', error.message);
             throw error;
         }
         let rawTransaction = {
@@ -48,24 +48,14 @@ class Transfer {
         let serializedTx = tx.serialize();  
 
         // 发送签名消息
-        error = null;
-        let transactionHash = null;
-        let waitGroup = new WaitGroup(1);        
-        let input = '0x' + serializedTx.toString('hex'); 
-        web3.eth.sendSignedTransaction(input).once('transactionHash', function(hash) {
-            transactionHash = hash;
-            waitGroup.done();
-        }).on('error', function(err) {
-            error = err;
-            waitGroup.done();
-        });
-
-        waitGroup.wait();
+        let receipt = null;
+        let input = '0x' + serializedTx.toString('hex');
+        [error, receipt] = await future(web3.eth.sendSignedTransaction(input));
         if (error != null) {
-            console.error('Failed to send token,', error.message);
+            logger.error('Failed to send token, %s', error.message);
             throw error;
         }
-        return transaction.transactionHash;
+        return receipt.transactionHash;
     }
 
     // 发送erc20代币
@@ -90,12 +80,12 @@ class Transfer {
         let gasPrice, count, transaction;
         [error, gasPrice] = await future(web3.eth.getGasPrice());
         if (error != null) {
-            console.error('Failed to send erc20 token,', error.message);
+            logger.error('Failed to send erc20 token, %s', error.message);
             throw error;
         }
         [error, count] = await future(web3.eth.getTransactionCount(from));
         if (error != null) {
-            console.error('Failed to send erc20 token,', error.message);
+            logger.error('Failed to send erc20 token, %s', error.message);
             throw error;
         }
         let rawTransaction = {
@@ -113,25 +103,16 @@ class Transfer {
         let serializedTx = tx.serialize();
 
         // 发送签名消息
-        error = null;
-        let transactionHash = null;
-        let waitGroup = new WaitGroup(1);
-        let input = '0x' + serializedTx.toString('hex');       
-        web3.eth.sendSignedTransaction(input).once('transactionHash', function(hash) {
-            transactionHash = hash;
-            waitGroup.done();
-        }).on('error', function(err) {
-            error = err;
-            waitGroup.done();
-        });
-
-        waitGroup.wait();
+        let receipt = null;
+        let input = '0x' + serializedTx.toString('hex');
+        [error, receipt] = await future(web3.eth.sendSignedTransaction(input));
         if (error != null) {
-            console.error('Failed to send erc20 token,', error.message);
+            logger.error('Failed to send erc20 token, %s', error.message);
             throw error;
         }
-        return transactionHash;
+        return receipt.transactionHash;
     }
+
 };
 
 module.exports = Transfer;

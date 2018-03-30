@@ -9,7 +9,7 @@ class WaitGrounp {
         }
     }
 
-    wait() {
+    async wait() {
         let self = this;
         function waitDone() {
             return new Promise(function(resolve, reject) {

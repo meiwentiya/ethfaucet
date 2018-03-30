@@ -1,7 +1,8 @@
 let request = require('request');
+let logger = require('./logger');
  
  function Notify() {
-    let type        = "transaction";
+    let type        = 'transaction';
     let symbol      = '';   // 代币符号
     let from        = null; // 发送者
     let to          = null; // 接收者
@@ -13,13 +14,12 @@ let request = require('request');
     this.post = function(url) {
         let options = {
             url     :url,
-            method  :"post",
+            method  :'post',
             json    :JSON.stringify(this)
         };
-        console.info('calll post:', options.json);
         request.post(options, function (error, response, body) {
             if (error != null) {
-                console.error("Failed to post notify", error.message, options.json);
+                logger.error('Failed to post notify: %s, %s', error.message, options.json);
             }
         });
     }

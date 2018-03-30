@@ -1,4 +1,5 @@
-const future = require('../conmon/future');
+let logger = require('../common/logger');
+const future = require('../common/future');
 
 class RPCServer {
     constructor(ethereum, options){
@@ -22,7 +23,7 @@ class RPCServer {
             if (error) {
                 throw error;
             } else {
-                console.log('JSON RPC server running ...');
+                logger.warn('JSON RPC server running ...');
             }
         });
     }
@@ -31,18 +32,18 @@ class RPCServer {
     async _ethSendToken(data, callback) {
         // 校验参数
         if (data.length < 2) {
-            let error = {code: -32602, message: "Invalid params" };
+            let error = {code: -32602, message: 'Invalid params' };
             callback(error, undefined);
             return
         }
 
         if (typeof data[0] != 'string' || data[0].length != 42) {
-            let error = {code: -32602, message: "Invalid params, to address" };
+            let error = {code: -32602, message: 'Invalid params, to address' };
             callback(error, undefined);
             return 
         }
-        if (typeof data[1] != 'string' || !data[1].match("(^-?[0-9.]+)")) {
-            let error = {code: -32000, message: "Invalid param, amount"};
+        if (typeof data[1] != 'string' || !data[1].match('(^-?[0-9.]+)')) {
+            let error = {code: -32000, message: 'Invalid param, amount'};
             callback(error, undefined);
             return 
         }
@@ -61,23 +62,23 @@ class RPCServer {
     async _ethSendERC20(data, callback) {
         // 校验参数
         if (data.length < 3) {
-            let error = {code: -32602, message: "Invalid params" };
+            let error = {code: -32602, message: 'Invalid params' };
             callback(error, undefined);
             return
         }
 
         if (typeof data[0] != 'string') {
-            let error = {code: -32602, message: "Invalid params, token symbol" };
+            let error = {code: -32602, message: 'Invalid params, token symbol' };
             callback(error, undefined);
             return 
         }
         if (typeof data[1] != 'string' || data[1].length != 42) {
-            let error = {code: -32602, message: "Invalid params, to address" };
+            let error = {code: -32602, message: 'Invalid params, to address' };
             callback(error, undefined);
             return 
         }
-        if (typeof data[2] != 'string' || !data[2].match("(^-?[0-9.]+)")) {
-            let error = {code: -32000, message: "Invalid param, amount"};
+        if (typeof data[2] != 'string' || !data[2].match('(^-?[0-9.]+)')) {
+            let error = {code: -32000, message: 'Invalid param, amount'};
             callback(error, undefined);
             return 
         }

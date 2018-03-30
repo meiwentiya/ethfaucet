@@ -1,6 +1,6 @@
 const Server = require('./config/server');
-const RpcServer = require("./app/rpcserver");
-const Ethereum = require("./ethereum/ethereum");
+const RpcServer = require('./app/rpcserver');
+const Ethereum = require('./ethereum/ethereum');
 
 // 启动以太坊服务
 let eth = new Ethereum();
