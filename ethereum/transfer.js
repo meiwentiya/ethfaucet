@@ -1,5 +1,5 @@
 let Tx = require('ethereumjs-tx');
-let logger = require('./common/logger');
+let logger = require('../common/logger');
 const future = require('../common/future');
 
 class Transfer {
@@ -14,11 +14,14 @@ class Transfer {
         let web3 = this._web3;
         [error, balance] = await future(web3.eth.getBalance(from, 'latest'));
         if (error != null) {
+            logger.error('Failed to send token, getBalance, %s', error.message);
             throw error;
         }
         amount = web3.utils.toWei(amount);
         if (amount > balance) {
-            throw new Error('Insufficient coins');
+            error = new Error('Insufficient coins');
+            logger.error('Failed to send token, %s', error.message);
+            throw error;
         }
      
         // 构造消息
@@ -70,10 +73,13 @@ class Transfer {
         // 检查余额
         [error, balance] = await future(contract.methods.balanceOf(from).call());
         if (error != null) {
+            logger.error('Failed to send erc20 token, balanceOf, %s', error.message);
             throw error;
         }
         if (amount > balance) {
-            throw new Error('Insufficient coins');
+            error = new Error('Insufficient coins');
+            logger.error('Failed to send erc20 token, %s', error.message);
+            throw error;
         }
 
         // 构造消息

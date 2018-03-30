@@ -1,3 +1,5 @@
+let logger = require('../common/logger');
+
 class Accounts {
     constructor(web3){
         this._web3 = web3;
@@ -25,6 +27,7 @@ class Accounts {
         let self = this;
         this._web3.eth.getAccounts(function(error, accounts) {
             if (error != null) {
+                logger.error('Failed to get accounts, %s', error.message);
                 throw error;
             }
             for (let i in accounts) {

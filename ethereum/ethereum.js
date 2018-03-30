@@ -16,13 +16,13 @@ class Ethereum {
 
         // 初始ETH配置
         const Tokens = require('../config/tokens');
-        this._eth = Tokens["eth"];
+        this._eth = Tokens['eth'];
         this._web3.setProvider(new Web3.providers.HttpProvider(this._eth.web3url));
         [this._eth.private_key, this._eth.address] = this._readPrivateKey(this._eth.keystore, this._eth.unlockpassword);
 
         // 初始ERC20配置
         for (let key in Tokens) {
-            if (key != "eth" && Tokens[key].family == "ETH") {
+            if (key != 'eth' && Tokens[key].family == 'ETH') {
                 let token = Tokens[key];
                 [token.private_key, token.address] = this._readPrivateKey(token.keystore, token.unlockpassword);
                 this._erc20_tokens.push(token);
@@ -103,15 +103,15 @@ class Ethereum {
 
     // 读取私钥
     _readPrivateKey(keystore, unlockpassword) {
-        const fs = require("fs");
+        const fs = require('fs');
         const path = require('path');
-        const keythereum = require("keythereum");
+        const keythereum = require('keythereum');
 
         let buffer = fs.readFileSync(path.join('.', keystore));
         try {
             let obj = JSON.parse(buffer);
             let privateKey = keythereum.recover(unlockpassword, obj);
-            return [privateKey, "0x"+obj.address];
+            return [privateKey, '0x'+obj.address];
         } catch (error) {
             logger.info('Failed to get private key, unlock password is invalid.');
             throw error;
@@ -164,7 +164,7 @@ class Ethereum {
         // 获取区块信息
         [error, block] = await future(web3.eth.getBlock(this._lastBlockNumber));
         if (error != null) {
-            logger.info("Failed to call `getBlock`, %s", error.message);
+            logger.info('Failed to call `getBlock`, %s', error.message);
             return
         }
 
@@ -172,7 +172,7 @@ class Ethereum {
         for (let i = 0; i < block.transactions.length;) {
             [error, transaction] = await future(web3.eth.getTransaction(block.transactions[i]));
             if (error != null) {
-                logger.info("Failed to call `getTransaction`, %s, %s", block.transactions[i], error.message);
+                logger.info('Failed to call `getTransaction`, %s, %s', block.transactions[i], error.message);
                 continue
             }
 
